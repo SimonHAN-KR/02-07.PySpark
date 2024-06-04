@@ -1,0 +1,146 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "Lookup",
+        "typeProperties": {
+          "source": {
+            "type": "MySqlSource"
+          },
+          "datasetSettings": {
+            "type": "MySqlTable",
+            "typeProperties": {
+              "tableName": "`sample_superstore_csv`"
+            },
+            "schema": [],
+            "externalReferences": {
+              "connection": "f53effaf-42a7-4cd5-be8f-5281778d92a2"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "MySQL_private",
+        "dependsOn": []
+      },
+      {
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "MySqlSource",
+            "datasetSettings": {
+              "type": "MySqlTable",
+              "typeProperties": {
+                "tableName": "`sample_superstore_csv`"
+              },
+              "schema": [],
+              "externalReferences": {
+                "connection": "f53effaf-42a7-4cd5-be8f-5281778d92a2"
+              },
+              "annotations": []
+            }
+          },
+          "sink": {
+            "type": "LakehouseTableSink",
+            "tableActionOption": "Append",
+            "datasetSettings": {
+              "type": "LakehouseTable",
+              "typeProperties": {
+                "table": "sample_superstore_private"
+              },
+              "schema": [],
+              "linkedService": {
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "9623dbb9-7cd4-4848-b672-ebe46216375d",
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "rootFolder": "Tables"
+                  },
+                  "annotations": []
+                },
+                "name": "Mysql"
+              },
+              "annotations": []
+            }
+          },
+          "translator": {
+            "type": "TabularTranslator",
+            "typeConversion": true,
+            "typeConversionSettings": {
+              "allowDataTruncation": true,
+              "treatBooleanAsNumber": false
+            }
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Public_MySQL_to_Onelake",
+        "dependsOn": [
+          {
+            "activity": "MySQL_private",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Lookup",
+        "typeProperties": {
+          "source": {
+            "type": "LakehouseTableSource"
+          },
+          "datasetSettings": {
+            "type": "LakehouseTable",
+            "typeProperties": {
+              "table": "sample_superstore_private"
+            },
+            "schema": [],
+            "linkedService": {
+              "properties": {
+                "type": "Lakehouse",
+                "typeProperties": {
+                  "artifactId": "9623dbb9-7cd4-4848-b672-ebe46216375d",
+                  "workspaceId": "00000000-0000-0000-0000-000000000000",
+                  "rootFolder": "Tables"
+                },
+                "annotations": []
+              },
+              "name": "Mysql"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Onelake_private",
+        "dependsOn": [
+          {
+            "activity": "Public_MySQL_to_Onelake",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
